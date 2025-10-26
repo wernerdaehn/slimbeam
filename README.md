@@ -88,7 +88,7 @@ Once all is ready, press the Calibrate button in Home Assistant. This copies the
 
 ## Code logic
 
-The distance measurement is a normal quatruple encode for the direction using two photo sensors each for the direction. Their resolution is not too high, probably in the 5cm range. I am not sure if the ESPHome considers falling and rising edges, so maybe that can be improved.
+The distance measurement is a normal quatruple encode for the direction using two photo sensors each for the direction. Their resolution is not too high, probably in the 5cm range. Pullups are enabled in code. I am not sure if the ESPHome considers falling and rising edges, so maybe that can be improved.
 
 The weight sensor ([Datasheet](https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-9596-AT42-QTouch-BSW-AT42QT1070_Datasheet.pdf)) is pretty advanced. It has many features that are useful if used as real touch panel, but some interfere with our use case. For example, it assumes that during calibration no sensors are touched and enables a functionality to prevent two neighboring buttons to be pressed by accident, they get automatically recalibrated after a few seconds and the value distance between touched/not touched is rather high.
 
