@@ -15,7 +15,7 @@ The Calibration 1 & 2 is On whenever the bit indicating a calibration is in prog
 
 This is a diagram of a training, first and last exercise with both arms, in between one exercise with on arm each.
 
-<img src="media/Screenshot 2025-10-26 095924.png" width="25%">
+<img src="media/Screenshot 2025-10-26 095924.png" width="100%">
 
 ## Partlist
 
