@@ -2,7 +2,7 @@
 
 The SlimBeam Cable Machine has all the sensors to measure the pull distance and the lifted weigth built in already, so adding a ESP32 to broadcast the values wirelessly is pretty easy. Even the sensor- and power-cables can be reused.
 
-<img src="media/Screenshot 2025-10-26 092117.png">
+<img src="media/Screenshot 2025-10-26 092117.png" widht="50%">
 
 ## Partlist
 
