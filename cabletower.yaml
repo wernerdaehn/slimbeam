@@ -1,0 +1,187 @@
+esphome:
+  name: seilzug-rechts
+  friendly_name: Seilzug rechts
+  on_boot: 
+    then:
+      - lambda: |
+          for(int i=0; i<7; i++) {
+            id(qt1).write_byte(32+i, 0x04); // sensor on if the diff is <= -4
+            id(qt1).write_byte(39+i, 0b00100000); // average 8, adjacent no
+            id(qt1).write_byte(46+i, 0x04); // 4 positive measurements for press
+            id(qt2).write_byte(32+i, 0x04);
+            id(qt2).write_byte(39+i, 0b00100000);
+            id(qt2).write_byte(46+i, 0x04);
+          }
+          id(qt1).write_byte(53, 0b00011111); // Fastout=0; maxcal=1; guardchannel=off
+          id(qt1).write_byte(55, 0x00); // max on dureation = off
+          id(qt2).write_byte(53, 0b00011111);
+          id(qt2).write_byte(55, 0x00);
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "xxxxxxx"
+
+ota:
+  - platform: esphome
+    password: "xxxxxxx"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Seilzug-Rechts Fallback Hotspot"
+    password: "xxxxx"
+
+captive_portal:
+    
+#-- 1 3V3
+#-- 2 GND
+#-- 3 16
+#-- 4 17
+#-- 5 21
+#-- 6 22
+
+#-- 1 GND
+#-- 2 26
+#-- 3 34
+#-- 4 18
+#-- 5 3V3
+#-- 6 19
+#-- 7 NC
+#-- 8 23
+
+# 0x1B
+
+i2c:
+  - id: i2c1
+    scl: GPIO26
+    sda: GPIO18
+    scan: true
+  - id: i2c2
+    scl: GPIO19
+    sda: GPIO23
+    scan: true
+
+i2c_device:
+  - id: qt1
+    i2c_id: i2c1
+    address: 0x1B
+  - id: qt2
+    i2c_id: i2c2
+    address: 0x1B
+
+sensor:
+
+  - platform: rotary_encoder
+    name: "Pull left"
+    id: "pull_left"
+    pin_a: 
+      number: GPIO17
+      mode:
+        input: True
+        pullup: True
+    pin_b: 
+      number: GPIO16
+      mode:
+        input: True
+        pullup: True
+    publish_initial_value: True
+    unit_of_measurement: "cm"
+    device_class: "distance"
+    icon: "mdi:vector-line"
+  - platform: rotary_encoder
+    name: "Pull right"
+    id: "pull_right"
+    pin_a: 
+      number: GPIO21
+      mode:
+        input: True
+        pullup: True
+    pin_b:
+      number: GPIO22
+      mode:
+        input: True
+        pullup: True
+    publish_initial_value: True
+    unit_of_measurement: "cm"
+    device_class: "distance"
+    icon: "mdi:vector-line"
+
+  - platform: template
+    id: weight
+    name: Weight
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: "kg"
+    device_class: "weight"
+    icon: "mdi:weight-kilogram"
+    lambda: |-
+      uint16_t v = id(qt1).read_byte(3).value_or(0) & 0x7F;
+      v += (id(qt2).read_byte(3).value_or(0) & 0x7F) << 7;
+      for(int i=13; i>=0; i--) {
+        // coming from the bottom, find the first that is not detected, meaning there is air
+        if (((v>>i) & 0x01) == 0x00) {
+          return i+1;
+        }
+      }
+      return 0;
+
+  - platform: template
+    id: keystatus
+    name: Keystatus
+    lambda: |-
+      uint16_t v = id(qt1).read_byte(3).value_or(0) & 0x7F;
+      v += (id(qt2).read_byte(3).value_or(0) & 0x7F) << 7;
+      return v;
+    accuracy_decimals: 0
+    update_interval: 1s
+    icon: "mdi:table-row"
+
+
+binary_sensor:
+
+  - platform: template
+    name: "Calibration 1"
+    id: "qt1_calibration"
+    lambda: |-
+      return ((id(qt1).read_byte(2).value_or(0)) >> 7) & 0x01;
+    icon: "mdi:numeric-0-box-outline"
+
+  - platform: template
+    name: "Calibration 2"
+    id: "qt2_calibration"
+    lambda: |-
+      return ((id(qt2).read_byte(2).value_or(0)) >> 7) & 0x01;
+    icon: "mdi:numeric-0-box-outline"
+
+button:
+  - platform: template
+    name: "Calibrate"
+    icon: "mdi:numeric-0-box-outline"
+    on_press:
+      - lambda: |-
+          id(qt1).write_byte(56, 0xff);
+          id(qt2).write_byte(56, 0xff);
+
+  - platform: template
+    name: "Zero"
+    icon: "mdi:numeric-0-box-multiple-outline"
+    on_press:
+      - sensor.rotary_encoder.set_value:
+          id: pull_left
+          value: 0
+      - sensor.rotary_encoder.set_value:
+          id: pull_right
+          value: 0
+
