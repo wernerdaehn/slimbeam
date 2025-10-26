@@ -2,7 +2,9 @@
 
 The SlimBeam Cable Pull Tower has all the sensors to measure the pull distance and the lifted weigth built in already, so adding a ESP32 to broadcast the values wirelessly is pretty easy. Even the sensor- and power-cables can be reused.
 
-It has two buttons.
+<img src="media/PXL_20251026_085052434.jpg" width="25%">
+
+In Home Assistant it has two buttons.
  - One is the calibrate the weight sensor - done just once. Pressing this copies the current sensor values into the reference registers. Then pull all 14 weights until you cannot see them anymore. This adjusts the calibrated reference values to the values when no weights are present. Now the calibration is completed.
  - Zero is to overwrite the distance sensors with zero values, in case that is needed.
 
@@ -10,6 +12,10 @@ The only relevant values are Weight, Pull left and Pull right. The key status is
 The Calibration 1 & 2 is On whenever the bit indicating a calibration is in progress is set in the controllers. So when the calibration button is hit and the touch controller is in calibration mode, this changes to On for a second.
 
 <img src="media/Screenshot 2025-10-26 092117.png" width="25%">
+
+This is a diagram of a training, first and last exercise with both arms, in between one exercise with on arm each.
+
+<img src="media/Screenshot 2025-10-26 095924.png" width="25%">
 
 ## Partlist
 
