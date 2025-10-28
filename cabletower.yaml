@@ -88,14 +88,8 @@ sensor:
     id: "pull_left"
     pin_a: 
       number: GPIO17
-      mode:
-        input: True
-        pullup: True
     pin_b: 
       number: GPIO16
-      mode:
-        input: True
-        pullup: True
     publish_initial_value: True
     unit_of_measurement: "cm"
     device_class: "distance"
@@ -105,14 +99,8 @@ sensor:
     id: "pull_right"
     pin_a: 
       number: GPIO21
-      mode:
-        input: True
-        pullup: True
     pin_b:
       number: GPIO22
-      mode:
-        input: True
-        pullup: True
     publish_initial_value: True
     unit_of_measurement: "cm"
     device_class: "distance"
@@ -143,6 +131,10 @@ sensor:
     lambda: |-
       uint16_t v = id(qt1).read_byte(3).value_or(0) & 0x7F;
       v += (id(qt2).read_byte(3).value_or(0) & 0x7F) << 7;
+      if (v == 16383) {
+        id(pull_left).set_value(0);
+        id(pull_right).set_value(0);
+      }
       return v;
     accuracy_decimals: 0
     update_interval: 1s
